@@ -1,4 +1,5 @@
 let scene, camera, renderer, model, controls;
+let isGestureControlEnabled = false; // Track gesture control state
 
 init();
 animate();
@@ -9,7 +10,7 @@ function init() {
 
   // Camera
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 2, 5); // Adjusted camera position
+  camera.position.set(0, 2, 5);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -22,7 +23,7 @@ function init() {
   setupLights();
 
   // Load GLB Model
-  loadModel('gift1.glb');
+  loadModel('treasure_box.glb');
 
   // Ground Plane
   setupGround();
@@ -30,55 +31,46 @@ function init() {
   // Controls
   setupControls();
 
-  // Sliders
-  setupSliders();
+  // UI Event Listeners
+  setupEventListeners();
 
   // Handle Window Resize
   window.addEventListener('resize', onWindowResize, false);
 }
 
 function setupLights() {
-  // Ambient Light
   const ambientLight = new THREE.AmbientLight(0x404040, 2);
   scene.add(ambientLight);
 
-  // Directional Light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 5, 5).normalize();
   directionalLight.castShadow = true;
   directionalLight.shadow.mapSize.width = 1024;
   directionalLight.shadow.mapSize.height = 1024;
-  directionalLight.shadow.camera.near = 0.5;
-  directionalLight.shadow.camera.far = 500;
   scene.add(directionalLight);
-
-  // Hemisphere Light
-  const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-  scene.add(hemisphereLight);
-
-  // Point Light
-  const pointLight = new THREE.PointLight(0xffffff, 1, 100);
-  pointLight.position.set(5, 5, 5);
-  pointLight.castShadow = true;
-  scene.add(pointLight);
 }
 
 function loadModel(url) {
   const loader = new THREE.GLTFLoader();
-  loader.load(url, function (gltf) {
-    model = gltf.scene;
-    model.scale.set(1, 1, 1);
-    model.position.y = 0.5; // Slightly raise the model to avoid clipping with the ground
-    model.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-      }
-    });
-    scene.add(model);
-  }, undefined, function (error) {
-    console.error('An error happened while loading the model:', error);
-  });
+  loader.load(
+    url,
+    function (gltf) {
+      model = gltf.scene;
+      model.scale.set(1, 1, 1);
+      model.position.y = 0.5;
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+      scene.add(model);
+    },
+    undefined,
+    function (error) {
+      console.error('An error occurred while loading the model:', error);
+    }
+  );
 }
 
 function setupGround() {
@@ -98,23 +90,47 @@ function setupControls() {
   controls.enableZoom = true;
 }
 
-function setupSliders() {
+function setupEventListeners() {
+  // Size Slider
   const sizeSlider = document.getElementById('size-slider');
-  const rotationSlider = document.getElementById('rotation-slider');
-
   sizeSlider.addEventListener('input', (e) => {
     if (model) {
       const scale = parseFloat(e.target.value);
       model.scale.set(scale, scale, scale);
-      model.position.y = 0.5 * scale; // Adjust Y position based on scale
+      model.position.y = 0.5 * scale; // Adjust height based on scale
     }
   });
 
+  // Rotation Slider
+  const rotationSlider = document.getElementById('rotation-slider');
   rotationSlider.addEventListener('input', (e) => {
     if (model) {
       const rotation = (parseFloat(e.target.value) * Math.PI) / 180;
       model.rotation.y = rotation;
     }
+  });
+
+  // Gesture Control Button
+  const gestureControlButton = document.getElementById('gesture-control');
+  gestureControlButton.addEventListener('click', () => {
+    isGestureControlEnabled = !isGestureControlEnabled;
+    gestureControlButton.textContent = isGestureControlEnabled ? '🛑' : '✋';
+    alert(isGestureControlEnabled ? 'Gesture control activated!' : 'Gesture control deactivated!');
+    // Add gesture detection logic here
+  });
+
+  // Reset View Button
+  const resetButton = document.getElementById('reset-view');
+  resetButton.addEventListener('click', () => {
+    if (controls) controls.reset();
+    if (camera) camera.position.set(0, 2, 5);
+    if (model) {
+      model.scale.set(1, 1, 1);
+      model.rotation.y = 0;
+      model.position.y = 0.5;
+    }
+    sizeSlider.value = 1;
+    rotationSlider.value = 0;
   });
 }
 
@@ -126,6 +142,6 @@ function onWindowResize() {
 
 function animate() {
   requestAnimationFrame(animate);
-  controls.update(); // Only required if controls.enableDamping = true
+  controls.update();
   renderer.render(scene, camera);
 }
