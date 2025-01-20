@@ -23,7 +23,7 @@ canvas {
   height: 100%;
 }
 
-/* Optional: Add a loading spinner or message */
+/* Loading spinner styles */
 #loading {
   position: absolute;
   top: 50%;
