@@ -1,4 +1,4 @@
-let camera, scene, renderer, model;
+let scene, camera, renderer, controls, model, mixer;
 
 init();
 animate();
@@ -14,24 +14,38 @@ function init() {
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  document.body.appendChild(renderer.domElement);
-
-  // Enable WebXR AR
   renderer.xr.enabled = true;
-  document.body.appendChild(THREE.ARButton.createButton(renderer));
+  document.getElementById('ar-container').appendChild(renderer.domElement);
 
   // Lighting
   const light = new THREE.DirectionalLight(0xffffff, 1);
   light.position.set(1, 1, 1).normalize();
   scene.add(light);
 
-  // Load 3D Model
+  // Load GLB Model
   const loader = new THREE.GLTFLoader();
   loader.load('treasure_box.glb', function (gltf) {
     model = gltf.scene;
-    model.scale.set(0.5, 0.5, 0.5); // Adjust scale
+    model.scale.set(1, 1, 1);
     scene.add(model);
+  });
+
+  // Sliders
+  const sizeSlider = document.getElementById('size-slider');
+  const rotationSlider = document.getElementById('rotation-slider');
+
+  sizeSlider.addEventListener('input', (e) => {
+    if (model) {
+      const scale = parseFloat(e.target.value);
+      model.scale.set(scale, scale, scale);
+    }
+  });
+
+  rotationSlider.addEventListener('input', (e) => {
+    if (model) {
+      const rotation = (parseFloat(e.target.value) * Math.PI) / 180;
+      model.rotation.y = rotation;
+    }
   });
 
   // Handle Window Resize
@@ -45,12 +59,6 @@ function onWindowResize() {
 }
 
 function animate() {
-  renderer.setAnimationLoop(render);
-}
-
-function render() {
-  if (model) {
-    model.rotation.y += 0.01; // Rotate the model for a realistic effect
-  }
+  requestAnimationFrame(animate);
   renderer.render(scene, camera);
 }
