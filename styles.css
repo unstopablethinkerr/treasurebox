@@ -4,6 +4,7 @@ body, html {
   overflow: hidden;
   height: 100%;
   font-family: Arial, sans-serif;
+  background-color: #000;
 }
 
 #ar-container {
@@ -12,26 +13,50 @@ body, html {
   height: 100%;
 }
 
-#slider-container {
+#control-bar {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-input[type="range"] {
-  width: 200px;
+#control-bar button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
 }
 
-label {
-  font-size: 14px;
-  color: #333;
+#control-bar button:hover {
+  color: #ff8c00;
+  transform: scale(1.1);
+}
+
+#control-bar input[type="range"] {
+  appearance: none;
+  width: 150px;
+  height: 6px;
+  background: #888;
+  border-radius: 5px;
+  outline: none;
+  transition: background 0.3s;
+}
+
+#control-bar input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #ff8c00;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
