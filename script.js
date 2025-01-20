@@ -1,156 +1,56 @@
-let scene, camera, renderer, model, controls;
-let isGestureControlEnabled = false; // Track gesture control state
+let scene, camera, renderer, video, texture, model;
 
 init();
-initCameraFeed();
 animate();
 
 function init() {
-  // Scene
-  scene = new THREE.Scene();
-
-  // Camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 2, 5);
-
-  // Renderer
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  document.getElementById('ar-container').appendChild(renderer.domElement);
-
-  // Lighting
-  setupLights();
-
-  // Load GLB Model
-  loadModel('treasure_box.glb');
-
-  // Ground Plane
-  setupGround();
-
-  // Controls
-  setupControls();
-
-  // UI Event Listeners
-  setupEventListeners();
-
-  // Handle Window Resize
-  window.addEventListener('resize', onWindowResize, false);
-}
-
-function initCameraFeed() {
-  const video = document.getElementById('camera-feed');
-
-  navigator.mediaDevices
-    .getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' }, // Use the back camera
-      },
-    })
-    .then((stream) => {
+  // Access the camera feed
+  video = document.getElementById('video');
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
       video.srcObject = stream;
-    })
-    .catch((err) => {
-      console.error('Error accessing the camera:', err);
-      alert('Unable to access camera. Please check permissions and try again.');
-    });
-}
+      video.play();
 
-function setupLights() {
-  const ambientLight = new THREE.AmbientLight(0x404040, 2);
-  scene.add(ambientLight);
+      // Create a texture from the video feed
+      texture = new THREE.VideoTexture(video);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.format = THREE.RGBFormat;
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 5, 5).normalize();
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 1024;
-  directionalLight.shadow.mapSize.height = 1024;
-  scene.add(directionalLight);
-}
+      // Create the scene
+      scene = new THREE.Scene();
 
-function loadModel(url) {
-  const loader = new THREE.GLTFLoader();
-  loader.load(
-    url,
-    function (gltf) {
-      model = gltf.scene;
-      model.scale.set(1, 1, 1);
-      model.position.y = 0.5;
-      model.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
+      // Create the camera
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 5);
+
+      // Create the renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true;
+      document.body.appendChild(renderer.domElement);
+
+      // Load the 3D model
+      const loader = new THREE.GLTFLoader();
+      loader.load('treasure_box.glb', function(gltf) {
+        model = gltf.scene;
+        model.scale.set(0.5, 0.5, 0.5);
+        model.position.set(0, 0, -2);
+        scene.add(model);
       });
-      scene.add(model);
-    },
-    undefined,
-    function (error) {
-      console.error('An error occurred while loading the model:', error);
-    }
-  );
-}
 
-function setupGround() {
-  const groundGeometry = new THREE.PlaneGeometry(20, 20);
-  const groundMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -1;
-  ground.receiveShadow = true;
-  scene.add(ground);
-}
+      // Add a plane to display the video texture
+      const geometry = new THREE.PlaneGeometry(2, 2);
+      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const plane = new THREE.Mesh(geometry, material);
+      scene.add(plane);
 
-function setupControls() {
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.25;
-  controls.enableZoom = true;
-}
-
-function setupEventListeners() {
-  // Size Slider
-  const sizeSlider = document.getElementById('size-slider');
-  sizeSlider.addEventListener('input', (e) => {
-    if (model) {
-      const scale = parseFloat(e.target.value);
-      model.scale.set(scale, scale, scale);
-      model.position.y = 0.5 * scale; // Adjust height based on scale
-    }
-  });
-
-  // Rotation Slider
-  const rotationSlider = document.getElementById('rotation-slider');
-  rotationSlider.addEventListener('input', (e) => {
-    if (model) {
-      const rotation = (parseFloat(e.target.value) * Math.PI) / 180;
-      model.rotation.y = rotation;
-    }
-  });
-
-  // Gesture Control Button
-  const gestureControlButton = document.getElementById('gesture-control');
-  gestureControlButton.addEventListener('click', () => {
-    isGestureControlEnabled = !isGestureControlEnabled;
-    gestureControlButton.textContent = isGestureControlEnabled ? '🛑' : '✋';
-    alert(isGestureControlEnabled ? 'Gesture control activated!' : 'Gesture control deactivated!');
-    // Add gesture detection logic here
-  });
-
-  // Reset View Button
-  const resetButton = document.getElementById('reset-view');
-  resetButton.addEventListener('click', () => {
-    if (controls) controls.reset();
-    if (camera) camera.position.set(0, 2, 5);
-    if (model) {
-      model.scale.set(1, 1, 1);
-      model.rotation.y = 0;
-      model.position.y = 0.5;
-    }
-    sizeSlider.value = 1;
-    rotationSlider.value = 0;
-  });
+      // Handle window resize
+      window.addEventListener('resize', onWindowResize, false);
+    })
+    .catch(err => {
+      console.error('Error accessing the camera:', err);
+    });
 }
 
 function onWindowResize() {
@@ -161,6 +61,5 @@ function onWindowResize() {
 
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
   renderer.render(scene, camera);
 }
