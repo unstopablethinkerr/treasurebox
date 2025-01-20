@@ -1,4 +1,4 @@
-let scene, camera, renderer, model;
+let scene, camera, renderer, model, controls;
 
 init();
 animate();
@@ -19,6 +19,25 @@ function init() {
   document.getElementById('ar-container').appendChild(renderer.domElement);
 
   // Lighting
+  setupLights();
+
+  // Load GLB Model
+  loadModel('treasure_box.glb');
+
+  // Ground Plane
+  setupGround();
+
+  // Controls
+  setupControls();
+
+  // Sliders
+  setupSliders();
+
+  // Handle Window Resize
+  window.addEventListener('resize', onWindowResize, false);
+}
+
+function setupLights() {
   const ambientLight = new THREE.AmbientLight(0x404040, 2);
   scene.add(ambientLight);
 
@@ -33,10 +52,11 @@ function init() {
 
   const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
   scene.add(hemisphereLight);
+}
 
-  // Load GLB Model
+function loadModel(url) {
   const loader = new THREE.GLTFLoader();
-  loader.load('treasure_box.glb', function (gltf) {
+  loader.load(url, function (gltf) {
     model = gltf.scene;
     model.scale.set(1, 1, 1);
     model.traverse((child) => {
@@ -46,9 +66,12 @@ function init() {
       }
     });
     scene.add(model);
+  }, undefined, function (error) {
+    console.error('An error happened while loading the model:', error);
   });
+}
 
-  // Ground Plane
+function setupGround() {
   const groundGeometry = new THREE.PlaneGeometry(20, 20);
   const groundMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
@@ -56,8 +79,16 @@ function init() {
   ground.position.y = -1;
   ground.receiveShadow = true;
   scene.add(ground);
+}
 
-  // Sliders
+function setupControls() {
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.25;
+  controls.enableZoom = true;
+}
+
+function setupSliders() {
   const sizeSlider = document.getElementById('size-slider');
   const rotationSlider = document.getElementById('rotation-slider');
 
@@ -74,9 +105,6 @@ function init() {
       model.rotation.y = rotation;
     }
   });
-
-  // Handle Window Resize
-  window.addEventListener('resize', onWindowResize, false);
 }
 
 function onWindowResize() {
@@ -86,7 +114,7 @@ function onWindowResize() {
 }
 
 function animate() {
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-  });
+  requestAnimationFrame(animate);
+  controls.update(); // Only required if controls.enableDamping = true
+  renderer.render(scene, camera);
 }
