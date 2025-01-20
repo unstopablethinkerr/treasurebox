@@ -21,7 +21,7 @@ function init() {
       scene = new THREE.Scene();
 
       // Create the camera
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, 0, 5);
 
       // Create the renderer
@@ -30,7 +30,7 @@ function init() {
       document.body.appendChild(renderer.domElement);
 
       // Add lighting to the scene
-      const ambientLight = new THREE.AmbientLight(0x404040, 2);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
       scene.add(ambientLight);
 
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -39,22 +39,24 @@ function init() {
 
       // Load the 3D model
       const loader = new THREE.GLTFLoader();
-      loader.load('treasure_box.glb', function(gltf) {
+      loader.load('treasure_box.glb', function (gltf) {
         model = gltf.scene;
         model.scale.set(0.5, 0.5, 0.5);
-        model.position.set(0, 0, -2);
+        model.position.set(0, -0.5, -2); // Adjust position for better alignment
         scene.add(model);
 
         // Hide the loading message
         document.getElementById('loading').style.display = 'none';
-      }, undefined, function(error) {
+      }, undefined, function (error) {
         console.error('An error occurred while loading the model:', error);
       });
 
-      // Add a plane to display the video texture
-      const geometry = new THREE.PlaneGeometry(2, 2);
+      // Add a transparent plane to display the video texture
+      const geometry = new THREE.PlaneGeometry(16, 9); // Aspect ratio 16:9
       const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
       const plane = new THREE.Mesh(geometry, material);
+      plane.scale.set(1.5, 1.5, 1); // Adjust to cover the screen
+      plane.position.z = -4; // Position it behind the 3D object
       scene.add(plane);
 
       // Handle window resize
@@ -73,5 +75,12 @@ function onWindowResize() {
 
 function animate() {
   requestAnimationFrame(animate);
+
+  // Rotate the model for a floating effect
+  if (model) {
+    model.rotation.y += 0.01; // Rotate around Y-axis
+    model.position.y = Math.sin(Date.now() * 0.002) * 0.1; // Floating effect
+  }
+
   renderer.render(scene, camera);
 }
