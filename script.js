@@ -36,7 +36,7 @@ function init() {
 
   // Load GLB Model
   const loader = new THREE.GLTFLoader();
-  loader.load('assets/treasure_box.glb', function (gltf) {
+  loader.load('treasure_box.glb', function (gltf) {
     model = gltf.scene;
     model.scale.set(1, 1, 1);
     model.traverse((child) => {
