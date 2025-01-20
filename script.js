@@ -22,7 +22,7 @@ function init() {
   setupLights();
 
   // Load GLB Model
-  loadModel('gift0.glb');
+  loadModel('gift1.glb');
 
   // Ground Plane
   setupGround();
