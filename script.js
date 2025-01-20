@@ -9,7 +9,7 @@ function init() {
 
   // Camera
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 5);
+  camera.position.set(0, 2, 5); // Adjusted camera position
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -22,7 +22,7 @@ function init() {
   setupLights();
 
   // Load GLB Model
-  loadModel('treasure_box.glb');
+  loadModel('gift0.glb');
 
   // Ground Plane
   setupGround();
@@ -38,9 +38,11 @@ function init() {
 }
 
 function setupLights() {
+  // Ambient Light
   const ambientLight = new THREE.AmbientLight(0x404040, 2);
   scene.add(ambientLight);
 
+  // Directional Light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 5, 5).normalize();
   directionalLight.castShadow = true;
@@ -50,8 +52,15 @@ function setupLights() {
   directionalLight.shadow.camera.far = 500;
   scene.add(directionalLight);
 
+  // Hemisphere Light
   const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
   scene.add(hemisphereLight);
+
+  // Point Light
+  const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+  pointLight.position.set(5, 5, 5);
+  pointLight.castShadow = true;
+  scene.add(pointLight);
 }
 
 function loadModel(url) {
@@ -59,6 +68,7 @@ function loadModel(url) {
   loader.load(url, function (gltf) {
     model = gltf.scene;
     model.scale.set(1, 1, 1);
+    model.position.y = 0.5; // Slightly raise the model to avoid clipping with the ground
     model.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true;
@@ -96,6 +106,7 @@ function setupSliders() {
     if (model) {
       const scale = parseFloat(e.target.value);
       model.scale.set(scale, scale, scale);
+      model.position.y = 0.5 * scale; // Adjust Y position based on scale
     }
   });
 
