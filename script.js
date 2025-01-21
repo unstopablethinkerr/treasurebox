@@ -18,7 +18,7 @@ function init() {
       camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, 0, 5);
 
-      // Create the renderer
+      // Create the renderer with alpha set to true for transparency
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.getElementById('ar-container').appendChild(renderer.domElement);
