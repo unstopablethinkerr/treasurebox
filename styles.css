@@ -29,12 +29,14 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none; /* Ensure the AR container does not interfere with user interactions */
 }
 
 canvas {
   display: block;
   width: 100%;
   height: 100%;
+  background: transparent; /* Make the canvas background transparent */
 }
 
 /* Loading spinner styles */
