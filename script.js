@@ -1,4 +1,4 @@
-let scene, camera, renderer, video, texture, model;
+let scene, camera, renderer, video, texture, models = [];
 
 init();
 animate();
@@ -40,10 +40,13 @@ function init() {
       // Load the 3D model
       const loader = new THREE.GLTFLoader();
       loader.load('treasure_box.glb', function (gltf) {
-        model = gltf.scene;
-        model.scale.set(1, 1, 1); // Increase size of the 3D object
-        model.position.set(0, -0.5, -2); // Adjust position for better alignment
-        scene.add(model);
+        for (let i = 0; i < 4; i++) {
+          const model = gltf.scene.clone();
+          model.scale.set(1, 1, 1); // Increase size of the 3D object
+          model.position.set((i - 1.5) * 2, -0.5, -2); // Adjust position for equal spacing
+          scene.add(model);
+          models.push(model);
+        }
 
         // Hide the loading message
         document.getElementById('loading').style.display = 'none';
@@ -56,7 +59,7 @@ function init() {
       const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
       const plane = new THREE.Mesh(geometry, material);
       plane.scale.set(1.5, 1.5, 1); // Adjust to cover the screen
-      plane.position.z = -4; // Position it behind the 3D object
+      plane.position.z = -4; // Position it behind the 3D objects
       scene.add(plane);
 
       // Handle window resize
@@ -76,11 +79,11 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Rotate the model for a floating effect
-  if (model) {
+  // Rotate the models for a floating effect
+  models.forEach(model => {
     model.rotation.y += 0.01; // Rotate around Y-axis
     model.position.y = Math.sin(Date.now() * 0.002) * 0.1; // Floating effect
-  }
+  });
 
   renderer.render(scene, camera);
 }
