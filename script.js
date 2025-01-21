@@ -1,4 +1,4 @@
-let scene, camera, renderer, video, texture, models = [];
+let scene, camera, renderer, video, models = [];
 
 init();
 animate();
@@ -11,12 +11,6 @@ function init() {
       video.srcObject = stream;
       video.play();
 
-      // Create a texture from the video feed
-      texture = new THREE.VideoTexture(video);
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.format = THREE.RGBFormat;
-
       // Create the scene
       scene = new THREE.Scene();
 
@@ -27,7 +21,7 @@ function init() {
       // Create the renderer
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+      document.getElementById('ar-container').appendChild(renderer.domElement);
 
       // Add lighting to the scene
       const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
@@ -53,14 +47,6 @@ function init() {
       }, undefined, function (error) {
         console.error('An error occurred while loading the model:', error);
       });
-
-      // Add a transparent plane to display the video texture
-      const geometry = new THREE.PlaneGeometry(16, 9); // Aspect ratio 16:9
-      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-      const plane = new THREE.Mesh(geometry, material);
-      plane.scale.set(1.5, 1.5, 1); // Adjust to cover the screen
-      plane.position.z = -4; // Position it behind the 3D objects
-      scene.add(plane);
 
       // Handle window resize
       window.addEventListener('resize', onWindowResize, false);
