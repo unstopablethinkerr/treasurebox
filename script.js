@@ -41,7 +41,7 @@ function init() {
       const loader = new THREE.GLTFLoader();
       loader.load('treasure_box.glb', function (gltf) {
         model = gltf.scene;
-        model.scale.set(0.5, 0.5, 0.5);
+        model.scale.set(1, 1, 1); // Increase size of the 3D object
         model.position.set(0, -0.5, -2); // Adjust position for better alignment
         scene.add(model);
 
